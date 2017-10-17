@@ -8,12 +8,12 @@ from flask import Flask, request
 app = Flask(__name__)
 load_dotenv(".env")
 
-with open("model.json", "r") as f:
-    model_json = f.read()
-model = model_from_json(model_json)
-model.load_weights("weights.hdf5")
-chars = []
-char_indices = dict((c, i) for i, c in enumerate(chars))
+#with open("model.json", "r") as f:
+#    model_json = f.read()
+#model = model_from_json(model_json)
+#model.load_weights("weights.hdf5")
+#chars = []
+#char_indices = dict((c, i) for i, c in enumerate(chars))
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -24,7 +24,7 @@ def verify():
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
-    return "This is Grifbot. I would just like to let everyone know that I suck.", 200
+    return "I would just like to let everyone know that I suck.", 200
 
 
 @app.route('/', methods=['POST'])
@@ -50,6 +50,7 @@ def webhook():
     return "ok", 200
 
 def get_dialogue(message_text, temp=0.7, maxlen=50):
+    return "Hi, it works then."
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
     for i in range(maxlen):
