@@ -49,10 +49,13 @@ def webhook():
 def get_dialogue(message_text, temp=0.7, maxlen=50):
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
+    if startlen < 64:
+        seed_string = " "*64 + seed_string
+        startlen += 64
     for i in range(maxlen):
         if seed_string.endswith("\n"):
             break
-        x = np.array([char_indices[c] for c in seed_string[-40:]])[np.newaxis,:]
+        x = np.array([char_indices[c] for c in seed_string[-64:]])[np.newaxis,:]
         preds = model.predict(x, verbose=0)[0][-1]
         preds = np.log(preds) / temp
         exp_preds = np.exp(preds)
