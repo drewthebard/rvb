@@ -47,7 +47,7 @@ def webhook():
     return "ok", 200
 
 def get_dialogue(message_text, temp=0.7, maxlen=50):
-    seed_string = message_text + "\n grif:"
+    seed_string = message_text.lower() + "\n grif:"
     startlen = len(seed_string)
     if startlen < 64:
         seed_string = " "*64 + seed_string
