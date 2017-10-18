@@ -1,6 +1,4 @@
 import time, threading
-import tensorflow as tf
-from keras.models import model_from_json
 
 class ModelLoader(threading.Thread):
 
@@ -8,6 +6,7 @@ class ModelLoader(threading.Thread):
         super(ModelLoader, self).__init__()
         self.model = None
         self.graph = None
+        self.starter_lines = None
         self.modelStructurePath = modelStructurePath
         self.modelWeightsPath = modelWeightsPath
 
@@ -17,14 +16,29 @@ class ModelLoader(threading.Thread):
     def getGraph(self):
         return self.graph
 
+    def getStarterLines(self):
+        return self.starter_lines
+
     def loadModel(self):
+        # start timing
         print("Model loading started...")
         s = time.clock()
+
+        # import tensorflows
+        import tensorflow as tf
+        from keras.models import model_from_json
+
+        # read starter lines
+        self.starter_lines = open("starter.txt").readlines()
+
+        # load models and graphs
         with open(self.modelStructurePath, "r") as jsonFile:
             loadedModelStructure = jsonFile.read()
         self.model = model_from_json(loadedModelStructure)
         self.model.load_weights(self.modelWeightsPath)
         self.graph = tf.get_default_graph()
+
+        # end timing
         e = time.clock()
         print("Model is Loaded: {0}; in {1:.2f} seconds".format(self.model, (e - s)))
 

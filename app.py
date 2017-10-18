@@ -8,13 +8,9 @@ from utils import ModelLoader
 
 app = Flask(__name__)
 
-# load keras model in a seperate thread
+load_dotenv(".env")
 modelLoader = ModelLoader("model.json", "weights.hdf5")
 modelLoader.start()
-
-# global variables
-load_dotenv(".env")
-starter_lines = open("starter.txt").readlines()
 chars = ['\n', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '>', '?', '[', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '\x92', '\xa0', '¡', '¿', 'à', 'á', 'ä', 'è', 'é', 'ê', 'í', 'ñ', 'ó', 'ö', 'ú']
 char_indices = dict((c, i) for i, c in enumerate(chars))
 
@@ -51,8 +47,9 @@ def webhook():
 
 def get_dialogue(message_text, temp=0.6, maxlen=120):
     if modelLoader.getModel() is None:
-        return "hey, i'm grifbot."
+        return "grifbot is loading"
     model = modelLoader.getModel()
+    starter_lines = modelLoader.getStarterLines()
 
     random.shuffle(starter_lines)
     starter = "\n".join(starter_lines)
