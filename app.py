@@ -50,28 +50,26 @@ def webhook():
     return "ok", 200
 
 def get_dialogue(message_text, temp=0.6, maxlen=120):
-    print('called function')
     if modelLoader.getModel() is None:
-        return jsonify("hey, i'm grifbot.")
+        return "hey, i'm grifbot."
     model = modelLoader.getModel()
 
     random.shuffle(starter_lines)
     starter = "\n".join(starter_lines)
     seed_string = starter + "\n simmons:" + message_text.lower() + "\n grif:"
     startlen = len(seed_string)
-    print('got string')
 
-    for i in range(maxlen):
-        if seed_string.endswith("\n"):
-            break
-        x = np.array([char_indices.get(c, 1.0) for c in seed_string[-64:]])[np.newaxis,:]
-        preds = model.predict(x, verbose=0)[0][-1]
-        preds = np.log(preds) / temp
-        exp_preds = np.exp(preds)
-        preds = exp_preds / np.sum(exp_preds)
-        next_char = choice(chars, p=preds)
-        seed_string = seed_string + next_char
-    print('finished predictions')
+    with modelLoader.getGraph().as_default():
+        for i in range(maxlen):
+            if seed_string.endswith("\n"):
+                break
+            x = np.array([char_indices.get(c, 1.0) for c in seed_string[-64:]])[np.newaxis,:]
+            preds = model.predict(x, verbose=0)[0][-1]
+            preds = np.log(preds) / temp
+            exp_preds = np.exp(preds)
+            preds = exp_preds / np.sum(exp_preds)
+            next_char = choice(chars, p=preds)
+            seed_string = seed_string + next_char
     
     return seed_string[startlen:-1]
 
