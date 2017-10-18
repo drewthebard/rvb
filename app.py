@@ -3,7 +3,6 @@ import requests
 import numpy as np
 from numpy.random import choice
 from dotenv import load_dotenv
-from keras.models import Sequential, model_from_json
 from flask import Flask, request
 from utils import ModelLoader
 
@@ -51,6 +50,7 @@ def webhook():
     return "ok", 200
 
 def get_dialogue(message_text, temp=0.6, maxlen=120):
+    print('called function')
     if modelLoader.getModel() is None:
         return jsonify("hey, i'm grifbot.")
     model = modelLoader.getModel()
@@ -59,6 +59,7 @@ def get_dialogue(message_text, temp=0.6, maxlen=120):
     starter = "\n".join(starter_lines)
     seed_string = starter + "\n simmons:" + message_text.lower() + "\n grif:"
     startlen = len(seed_string)
+    print('got string')
 
     for i in range(maxlen):
         if seed_string.endswith("\n"):
@@ -70,6 +71,7 @@ def get_dialogue(message_text, temp=0.6, maxlen=120):
         preds = exp_preds / np.sum(exp_preds)
         next_char = choice(chars, p=preds)
         seed_string = seed_string + next_char
+    print('finished predictions')
     
     return seed_string[startlen:-1]
 
