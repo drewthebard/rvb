@@ -8,12 +8,12 @@ from flask import Flask, request
 app = Flask(__name__)
 load_dotenv(".env")
 
-#with open("model.json", "r") as f:
-#    model_json = f.read()
-#model = model_from_json(model_json)
-#model.load_weights("weights.hdf5")
-#chars = []
-#char_indices = dict((c, i) for i, c in enumerate(chars))
+with open("model.json", "r") as f:
+    model_json = f.read()
+model = model_from_json(model_json)
+model.load_weights("weights.hdf5")
+chars = ['\n', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '>', '?', '[', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '\x92', '\xa0', '¡', '¿', 'à', 'á', 'ä', 'è', 'é', 'ê', 'í', 'ñ', 'ó', 'ö', 'ú']
+char_indices = dict((c, i) for i, c in enumerate(chars))
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -38,19 +38,15 @@ def webhook():
             for messaging_event in entry["messaging"]:
                 if messaging_event.get("message"):  # someone sent us a message
                     sender_id = messaging_event["sender"]["id"] # the facebook ID of the person sending you the message
-                    message_text = messaging_event["message"]["text"]  # the message's text
+                    try:
+                        message_text = messaging_event["message"]["text"]  # the message's text
+                    except KeyError:
+                        message_text = "Do you ever wonder why we're here?"
                     send_message(sender_id, get_dialogue(message_text))
-                if messaging_event.get("delivery"):  # delivery confirmation
-                    pass
-                if messaging_event.get("optin"):  # optin confirmation
-                    pass
-                if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    pass
 
     return "ok", 200
 
 def get_dialogue(message_text, temp=0.7, maxlen=50):
-    return "Hi, it works then."
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
     for i in range(maxlen):
