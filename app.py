@@ -1,19 +1,21 @@
-import os, sys, json
+import os, sys, json, random
 import requests
 import numpy as np
+from numpy.random import choice
 from dotenv import load_dotenv
 from keras.models import Sequential, model_from_json
 from flask import Flask, request
 
-app = Flask(__name__)
-load_dotenv(".env")
-
-with open("model.json", "r") as f:
-    model_json = f.read()
+# load keras model
+starter_lines = open("starter.txt").readlines()
+model_json = open("model.json").read()
 model = model_from_json(model_json)
 model.load_weights("weights.hdf5")
 chars = ['\n', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '>', '?', '[', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '\x92', '\xa0', '¡', '¿', 'à', 'á', 'ä', 'è', 'é', 'ê', 'í', 'ñ', 'ó', 'ö', 'ú']
 char_indices = dict((c, i) for i, c in enumerate(chars))
+
+app = Flask(__name__)
+load_dotenv(".env")
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -29,6 +31,7 @@ def verify():
 
 @app.route('/', methods=['POST'])
 def webhook():
+    start_time = time.time()
     # endpoint for processing incoming messaging events
     data = request.get_json()
     print(data)  # you may not want to log every incoming message in production, but it's good for testing
@@ -41,21 +44,21 @@ def webhook():
                     try:
                         message_text = messaging_event["message"]["text"]  # the message's text
                     except KeyError:
-                        message_text = "Do you ever wonder why we're here?"
+                        message_text = "do you ever wonder why we're here?"
                     send_message(sender_id, get_dialogue(message_text))
 
     return "ok", 200
 
-def get_dialogue(message_text, temp=0.7, maxlen=50):
-    seed_string = message_text.lower() + "\n grif:"
+def get_dialogue(message_text, temp=0.6, maxlen=120):
+    random.shuffle(starter_lines)
+    starter = "\n".join(starter_lines)
+    seed_string = starter + "\n simmons:" + message_text.lower() + "\n grif:"
     startlen = len(seed_string)
-    if startlen < 64:
-        seed_string = " "*64 + seed_string
-        startlen += 64
+
     for i in range(maxlen):
         if seed_string.endswith("\n"):
             break
-        x = np.array([char_indices.get(c, ' ') for c in seed_string[-64:]])[np.newaxis,:]
+        x = np.array([char_indices.get(c, 1.0) for c in seed_string[-64:]])[np.newaxis,:]
         preds = model.predict(x, verbose=0)[0][-1]
         preds = np.log(preds) / temp
         exp_preds = np.exp(preds)
