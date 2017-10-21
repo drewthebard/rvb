@@ -45,15 +45,15 @@ def webhook():
 
     return "ok", 200
 
-def get_dialogue(message_text, temp=0.5, maxlen=120):
+def get_dialogue(message_text, temp=0.65, maxlen=120):
     if modelLoader.getModel() is None:
         return "grifbot is loading"
     model = modelLoader.getModel()
     starter_lines = modelLoader.getStarterLines()
 
     random.shuffle(starter_lines)
-    starter = "\n".join(starter_lines[:3])
-    seed_string = starter + "\n simmons:" + message_text.lower() + "\n grif:"
+    starter = "\n".join(starter_lines)
+    seed_string = starter + " " + message_text.lower() + "\n grif:"
     startlen = len(seed_string)
 
     with modelLoader.getGraph().as_default():
