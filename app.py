@@ -45,7 +45,7 @@ def webhook():
 
     return "ok", 200
 
-def get_dialogue(message_text, temp=0.6, maxlen=120):
+def get_dialogue(message_text, temp=0.6, maxlen=250):
     if modelLoader.getModel() is None:
         return "grifbot is loading"
     model = modelLoader.getModel()
