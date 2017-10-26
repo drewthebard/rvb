@@ -32,17 +32,17 @@ def webhook():
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
         # get message history from cache
-        messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 11)])) if cache.exists(sender) else []
+        messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
         messages.append(message.lower())
         dialogue = '\n'.join(
             ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
-        print(dialogue)
+        #print(dialogue)
 
         response = get_dialogue(dialogue) 
         cache.lpush(sender, message, response)
-        cache.ltrim(sender, 0, 11) # cache last 12 messages
+        cache.ltrim(sender, 0, 7) # cache last 8 messages
         send_message(sender, response)
-    return "ok"
+    return "ok", 200
 
 
 def messaging_events(data):
@@ -54,10 +54,10 @@ def messaging_events(data):
             yield event["sender"]["id"], "i have no idea."
 
 
-def get_dialogue(message_text, temp=0.65, maxlen=250):
+def get_dialogue(message_text, temp=0.65, maxlen=251):
     model = modelLoader.getModel()
     if model is None:
-        return "grifbot is loading"
+        return "Grifbot is loading"
 
     starter_lines = modelLoader.getStarterLines()
     random.shuffle(starter_lines)
