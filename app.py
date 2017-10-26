@@ -29,7 +29,7 @@ def verify():
 @app.route('/', methods=['POST'])
 def webhook():
     data = request.get_json()
-    for sender, message in messaging_events(payload):
+    for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message)) # for testing only
         messages = cache.lrange(sender, 0, 7).append(message) # get message history from cache
         dialogue = '\n'.join(
@@ -42,8 +42,7 @@ def webhook():
     return "ok"
 
 
-def messaging_events(payload):
-    data = json.loads(payload)
+def messaging_events(data):
     events = data["entry"][0]["messaging"]
     for event in events:
         if "message" in event and "text" in event["message"]:
