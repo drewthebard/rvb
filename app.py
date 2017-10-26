@@ -33,15 +33,16 @@ def webhook():
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
-        messages.append(message.lower())
-        dialogue = '\n'.join(
-            ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
-        #print(dialogue)
+        if messages[-1] != message.lower(): # ignore repeat messages
+            messages.append(message.lower())
+            dialogue = '\n'.join(
+                ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
+            #print(dialogue)
 
-        response = get_dialogue(dialogue) 
-        cache.lpush(sender, message, response)
-        cache.ltrim(sender, 0, 7) # cache last 8 messages
-        send_message(sender, response)
+            response = get_dialogue(dialogue) 
+            cache.lpush(sender, message, response)
+            cache.ltrim(sender, 0, 7) # cache last 8 messages
+            send_message(sender, response)
     return "ok", 200
 
 
