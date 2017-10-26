@@ -31,17 +31,28 @@ def webhook():
     data = request.get_json()
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
-        if modelLoader.is_alive(): # still loading
-            send_message(sender, "Grifbot is still loading. Please try again.")
-            return "ok", 200
+
+        # send loading message
+        if modelLoader.is_alive(): 
+            send_message(sender, "Grifbot is loading. Please wait.")
+            modelLoader.join()
+
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
-        messages.append(message.lower() if message.endswith(("?","!",".")) else message.lower()+'.') # punctuation
+        message = message.lower() if message.endswith(("?","!",".")) else message.lower()+'.' # punctuation
+        
+        # ignore retransmissions
+        if messages and messages[-1] == message:
+            return "ok", 200 
+
+        # generate response
+        messages.append(message) 
         dialogue = '\n'.join(
             ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
         #print(dialogue)
-
         response = get_dialogue(dialogue) 
+
+        # send and cache
         cache.lpush(sender, message, response)
         cache.ltrim(sender, 0, 7) # cache last 8 messages
         send_message(sender, response)
@@ -65,7 +76,6 @@ def get_dialogue(message_text, temp=0.65, maxlen=251):
         starter = "\n".join(starter_lines)
         message_text = starter + '\n' + message_text
     seed_string = message_text + "\n grif:"
-    print(seed_string)
     startlen = len(seed_string)
 
     with modelLoader.getGraph().as_default():
