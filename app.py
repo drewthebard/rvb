@@ -31,7 +31,8 @@ def webhook():
     data = request.get_json()
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message)) # for testing only
-        messages = cache.lrange(sender, 0, 7).append(message) # get message history from cache
+        messages = list(cache.lrange(sender, 0, 7)) if cache.exists(sender) else []
+            + message # get message history from cache
         dialogue = '\n'.join(
             ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
         print(dialogue)
