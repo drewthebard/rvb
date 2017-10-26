@@ -32,8 +32,8 @@ def webhook():
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
         if modelLoader.is_alive(): # still loading
-            send_message(sender, "Grifbot is loading. Please wait.")
-            modelLoader.join()
+            send_message(sender, "Grifbot is still loading. Please try again.")
+            return "ok", 200
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
         messages.append(message.lower() if message.endswith(("?","!",".")) else message.lower()+'.') # punctuation
