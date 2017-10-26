@@ -31,8 +31,9 @@ def webhook():
     data = request.get_json()
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
-        if not modelLoader.getModel():
+        if modelLoader.is_alive(): # still loading
             send_message(sender, "Grifbot is loading. Please wait.")
+            modelLoader.join()
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
         messages.append(message.lower())
@@ -57,7 +58,6 @@ def messaging_events(data):
 
 
 def get_dialogue(message_text, temp=0.65, maxlen=251):
-    modelLoader.join()
     model = modelLoader.getModel()
     starter_lines = modelLoader.getStarterLines()
     random.shuffle(starter_lines)
@@ -71,7 +71,7 @@ def get_dialogue(message_text, temp=0.65, maxlen=251):
                 break
             x = np.array([char_indices.get(c, 1.0) for c in seed_string[-64:]])[np.newaxis,:]
             preds = model.predict(x, verbose=0)[0][-1]
-            preds = np.log(preds) / temp
+            preds = np.log(preds.clip(min=0.000001)) / temp
             exp_preds = np.exp(preds)
             preds = exp_preds / np.sum(exp_preds)
             next_char = np.random.choice(chars, p=preds)
