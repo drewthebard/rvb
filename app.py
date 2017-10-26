@@ -1,7 +1,6 @@
-import os, sys, json, random, requests
+import os, sys, json, random, requests, redis
 from dotenv import load_dotenv
 from flask import Flask, request
-from flask.ext.cacheify import init_cacheify
 
 import numpy as np
 from utils import ModelLoader
@@ -9,7 +8,7 @@ from utils import ModelLoader
 # load config vars, init app and cache
 load_dotenv(".env")
 app = Flask(__name__)
-cache = init_cacheify(app)
+cache = redis.from_url(os.environ.get("REDIS_URL"))
 
 # load keras model
 modelLoader = ModelLoader("model.json", "weights.hdf5")
@@ -32,13 +31,13 @@ def webhook():
     data = request.get_json()
     for sender, message in messaging_events(payload):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message)) # for testing only
-        messages = app.cache.get(sender).append(message) # get message history from cache
+        messages = cache.lrange(sender, 0, 7).append(message) # get message history from cache
         dialogue = '\n'.join(
             ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
         print(dialogue)
 
         response = get_dialogue(dialogue) 
-        app.cache.set(sender, messages.append(response)[-8:], 180) # cache last 8 messages
+        cache.lpush(sender, message, response) # cache last 8 messages
         send_message(sender, response)
     return "ok"
 
@@ -97,7 +96,7 @@ def send_message(recipient, message):
 
 
 if __name__ == '__main__':
-    while True: # for testing conversations offline
-        ins = input('Say something: ')
-        print(get_dialogue(ins))
-    # app.run(debug=True)
+    #while True: # for testing conversations offline
+    #    ins = input('Say something: ')
+    #    print(get_dialogue(ins))
+    app.run(debug=True)
