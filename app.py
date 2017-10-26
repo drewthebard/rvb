@@ -31,18 +31,19 @@ def webhook():
     data = request.get_json()
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
+        if not modelLoader.getModel():
+            send_message(sender, "Grifbot is loading. Please wait.")
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
-        if messages[-1] != message.lower(): # ignore repeat messages
-            messages.append(message.lower())
-            dialogue = '\n'.join(
-                ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
-            #print(dialogue)
+        messages.append(message.lower())
+        dialogue = '\n'.join(
+            ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
+        print(dialogue)
 
-            response = get_dialogue(dialogue) 
-            cache.lpush(sender, message, response)
-            cache.ltrim(sender, 0, 7) # cache last 8 messages
-            send_message(sender, response)
+        response = get_dialogue(dialogue) 
+        cache.lpush(sender, message, response)
+        cache.ltrim(sender, 0, 7) # cache last 8 messages
+        send_message(sender, response)
     return "ok", 200
 
 
@@ -56,10 +57,8 @@ def messaging_events(data):
 
 
 def get_dialogue(message_text, temp=0.65, maxlen=251):
+    modelLoader.join()
     model = modelLoader.getModel()
-    if model is None:
-        return "Grifbot is loading"
-
     starter_lines = modelLoader.getStarterLines()
     random.shuffle(starter_lines)
     starter = "\n".join(starter_lines)

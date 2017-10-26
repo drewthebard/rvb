@@ -1,6 +1,4 @@
 import time, threading
-from tensorflow import get_default_graph
-from keras.models import model_from_json
 
 class ModelLoader(threading.Thread):
 
@@ -22,6 +20,9 @@ class ModelLoader(threading.Thread):
         return self.starter_lines
 
     def loadModel(self):
+        from tensorflow import get_default_graph
+        from keras.models import model_from_json
+
         # start timing
         print("Model loading started...")
         s = time.clock()
