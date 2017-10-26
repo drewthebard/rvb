@@ -36,10 +36,10 @@ def webhook():
             modelLoader.join()
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
-        messages.append(message.lower())
+        messages.append(message.lower() if message.endswith(("?","!",".")) else message.lower()+'.') # punctuation
         dialogue = '\n'.join(
             ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
-        print(dialogue)
+        #print(dialogue)
 
         response = get_dialogue(dialogue) 
         cache.lpush(sender, message, response)
@@ -59,10 +59,13 @@ def messaging_events(data):
 
 def get_dialogue(message_text, temp=0.65, maxlen=251):
     model = modelLoader.getModel()
-    starter_lines = modelLoader.getStarterLines()
-    random.shuffle(starter_lines)
-    starter = "\n".join(starter_lines)
-    seed_string = starter + message_text + "\n grif:"
+    if len(message_text) <= 64:
+        starter_lines = modelLoader.getStarterLines()
+        random.shuffle(starter_lines)
+        starter = "\n".join(starter_lines)
+        message_text = starter + '\n' + message_text
+    seed_string = message_text + "\n grif:"
+    print(seed_string)
     startlen = len(seed_string)
 
     with modelLoader.getGraph().as_default():
@@ -98,7 +101,4 @@ def send_message(recipient, message):
 
 
 if __name__ == '__main__':
-    #while True: # for testing conversations offline
-    #    ins = input('Say something: ')
-    #    print(get_dialogue(ins))
     app.run(debug=True)
