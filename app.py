@@ -70,6 +70,7 @@ def messaging_events(data):
 
 def get_dialogue(message_text, temp=0.85, maxlen=251):
     model = modelLoader.getModel()
+    print(model.summary())
     if len(message_text) <= 64:
         starter_lines = modelLoader.getStarterLines()
         random.shuffle(starter_lines)
