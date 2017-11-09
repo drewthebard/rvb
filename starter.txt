@@ -1,12 +1,12 @@
- dr. chalmers:and i'll follow it up by fencin' some fridgerators.
- south:she's not a fucking monster, north.
- church:uh, training huh, was that before...
- sarge:didn't i just tell you to stop making up animals?
- doc:you see, in the end, we all worked together, and everyone got what they wanted.
- church:no. i'm just curious.
- simmons:see? that's what you get for arguing with science. stupid bitch.
- tucker:what? someone's gonna break in and steal the ticket to save ten bucks on parking.
- sarge:lopez, how're those vehicle repairs coming?
- church:yeah, so anyway, i'm gonna go in the base now, gonna go do some patrolling in there. you know how it goes. standard ops stuff. okay seeya.
- grif:how do you think i feel? i'm spending my break talking about simmons. *sigh* i'd envisioned so much more.
- church:what light? i don't see a light, you must be shaken up from the explosion. you should probably rest.
+ Simmons:You ever wonder why we're here?
+ Grif:It's one of life's great mysteries, isn't it. Why are we here? I mean, are we the product of... some cosmic coincidence or, is there really a God... watching everything?       You know, with a plan for us and stuff. I don't know man, but it keeps me up at night.
+ Simmons:...
+ Grif:...
+ Simmons:What? I meant why are we out here, in this canyon?
+ Grif:Oh, uh... yeah.
+ Simmons:What was all that stuff about God?
+ Grif:Uh... hm? Nothing.
+ Simmons:You wanna talk about it?
+ Grif:No
+ Simmons:You sure?
+ Grif:Yeah.

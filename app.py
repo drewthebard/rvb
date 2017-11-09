@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os, sys, json, random, requests, redis
 from dotenv import load_dotenv
 from flask import Flask, request
@@ -13,7 +14,7 @@ cache = redis.from_url(os.environ.get("REDIS_URL"))
 # load keras model
 modelLoader = ModelLoader("model.json", "weights.hdf5")
 modelLoader.start()
-chars = ['\n', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '>', '?', '[', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '\x92', '\xa0', '¡', '¿', 'à', 'á', 'ä', 'è', 'é', 'ê', 'í', 'ñ', 'ó', 'ö', 'ú']
+chars = '\n !"#$%&\'()*+,-./0123456789:;<>?[]abcdefghijklmnopqrstuvwxyz\x92\xa0¡¿àáäèéêíñóöú'
 char_indices = dict((c, i) for i, c in enumerate(chars))
 
 
@@ -32,11 +33,6 @@ def webhook():
     for sender, message in messaging_events(data):
         #print("Incoming from {sender}: {text}".format(sender=sender, message=message))
 
-        # send loading message
-        if modelLoader.is_alive(): 
-            send_message(sender, "Grifbot is loading. Please wait.")
-            modelLoader.join()
-
         # get message history from cache
         messages = list(reversed([m.decode('utf-8') for m in cache.lrange(sender, 0, 7)])) if cache.exists(sender) else []
         message = message.lower() if message.endswith(("?","!",".")) else message.lower()+'.' # punctuation
@@ -44,6 +40,11 @@ def webhook():
         # ignore retransmissions
         if messages and messages[-1] == message:
             return "ok", 200 
+
+        # send loading message
+        if modelLoader.is_alive(): 
+            send_message(sender, "Grifbot is loading. Please wait.")
+            modelLoader.join()
 
         # generate response
         messages.append(message) 
@@ -68,13 +69,11 @@ def messaging_events(data):
             yield event["sender"]["id"], "i have no idea."
 
 
-def get_dialogue(message_text, temp=0.85, maxlen=251):
+def get_dialogue(message_text, temp=0.7, maxlen=251):
     model = modelLoader.getModel()
-    print(model.summary())
-    if len(message_text) <= 64:
+    if len(message_text) <= 128:
         starter_lines = modelLoader.getStarterLines()
-        random.shuffle(starter_lines)
-        starter = "\n".join(starter_lines)
+        starter = "\n".join(starter_lines).lower()
         message_text = starter + '\n' + message_text
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
@@ -83,7 +82,7 @@ def get_dialogue(message_text, temp=0.85, maxlen=251):
         for i in range(maxlen):
             if seed_string.endswith("\n"):
                 break
-            x = np.array([char_indices.get(c, 1.0) for c in seed_string[-64:]])[np.newaxis,:]
+            x = np.array([char_indices.get(c, 1.0) for c in seed_string[-128:]])[np.newaxis,:]
             preds = model.predict(x, verbose=0)[0][-1]
             preds = np.log(preds.clip(min=0.000001)) / temp
             exp_preds = np.exp(preds)
