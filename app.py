@@ -78,17 +78,16 @@ def get_dialogue(message_text, temp=0.7, maxlen=251):
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
 
-    with modelLoader.getGraph().as_default():
-        for i in range(maxlen):
-            if seed_string.endswith("\n"):
-                break
-            x = np.array([char_indices.get(c, 1.0) for c in seed_string[-128:]])[np.newaxis,:]
-            preds = model.predict(x, verbose=0)[0][-1]
-            preds = np.log(preds.clip(min=0.000001)) / temp
-            exp_preds = np.exp(preds)
-            preds = exp_preds / np.sum(exp_preds)
-            next_char = np.random.choice(chars, p=preds)
-            seed_string = seed_string + next_char
+    for i in range(maxlen):
+        if seed_string.endswith("\n"):
+            break
+        x = np.array([char_indices.get(c, 1.0) for c in seed_string[-128:]])[np.newaxis,:]
+        preds = model.predict(x, verbose=0)[0][-1]
+        preds = np.log(preds.clip(min=0.000001)) / temp
+        exp_preds = np.exp(preds)
+        preds = exp_preds / np.sum(exp_preds)
+        next_char = np.random.choice(chars, p=preds)
+        seed_string = seed_string + next_char
     
     return seed_string[startlen:-1]
 
