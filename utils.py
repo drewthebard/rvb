@@ -4,8 +4,8 @@ class ModelLoader(threading.Thread):
 
     def __init__(self, modelStructurePath, modelWeightsPath):
         super(ModelLoader, self).__init__()
-        self.model = None
         self.graph = None
+        self.model = None
         self.starter_lines = None
         self.modelStructurePath = modelStructurePath
         self.modelWeightsPath = modelWeightsPath

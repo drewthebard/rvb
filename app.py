@@ -9,12 +9,12 @@ from utils import ModelLoader
 # load config vars, init app and cache
 load_dotenv(".env")
 app = Flask(__name__)
-cache = redis.from_url(os.environ.get("REDIS_URL"))
+#cache = redis.from_url(os.environ.get("REDIS_URL"))
 
 # load keras model
-modelLoader = ModelLoader("model.json", "weights.hdf5")
+modelLoader = ModelLoader("rvb-model.json", "rvb-weights.hdf5")
 modelLoader.start()
-chars = '\n !"#$%&\'()*+,-./0123456789:;<>?[]abcdefghijklmnopqrstuvwxyz\x92\xa0¡¿àáäèéêíñóöú'
+chars = list('\n !"#$%&\'()*+,-./0123456789:;<>?[]abcdefghijklmnopqrstuvwxyz\x92\xa0¡¿àáäèéêíñóöú')
 char_indices = dict((c, i) for i, c in enumerate(chars))
 
 
@@ -69,7 +69,7 @@ def messaging_events(data):
             yield event["sender"]["id"], "i have no idea."
 
 
-def get_dialogue(message_text, temp=0.7, maxlen=251):
+def get_dialogue(message_text, temp=0.5, maxlen=251):
     model = modelLoader.getModel()
     if len(message_text) <= 128:
         starter_lines = modelLoader.getStarterLines()
@@ -78,16 +78,17 @@ def get_dialogue(message_text, temp=0.7, maxlen=251):
     seed_string = message_text + "\n grif:"
     startlen = len(seed_string)
 
-    for i in range(maxlen):
-        if seed_string.endswith("\n"):
-            break
-        x = np.array([char_indices.get(c, 1.0) for c in seed_string[-128:]])[np.newaxis,:]
-        preds = model.predict(x, verbose=0)[0][-1]
-        preds = np.log(preds.clip(min=0.000001)) / temp
-        exp_preds = np.exp(preds)
-        preds = exp_preds / np.sum(exp_preds)
-        next_char = np.random.choice(chars, p=preds)
-        seed_string = seed_string + next_char
+    with modelLoader.getGraph().as_default():
+        for i in range(maxlen):
+            if seed_string.endswith("\n"):
+                break
+            x = np.array([char_indices.get(c, 1.0) for c in seed_string[-128:]])[np.newaxis,:]
+            preds = model.predict(x, verbose=0)[0][-1]
+            preds = np.log(preds.clip(min=0.000001)) / temp
+            exp_preds = np.exp(preds)
+            preds = exp_preds / np.sum(exp_preds)
+            next_char = np.random.choice(chars, p=preds)
+            seed_string = seed_string + next_char
     
     return seed_string[startlen:-1]
 
@@ -110,4 +111,12 @@ def send_message(recipient, message):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # for testing conversations offline
+    messages = []
+    while True:
+        message = input('Say something: ')
+        messages.append(message.lower()) 
+        dialogue = '\n'.join(
+            ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
+        print(get_dialogue(dialogue))
+    #app.run(debug=True)
