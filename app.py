@@ -9,7 +9,7 @@ from utils import ModelLoader
 # load config vars, init app and cache
 load_dotenv(".env")
 app = Flask(__name__)
-#cache = redis.from_url(os.environ.get("REDIS_URL"))
+cache = redis.from_url(os.environ.get("REDIS_URL"))
 
 # load keras model
 modelLoader = ModelLoader("rvb-model.json", "rvb-weights.hdf5")
