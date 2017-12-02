@@ -49,7 +49,7 @@ def webhook():
         # generate response
         messages.append(message) 
         dialogue = '\n'.join(
-            ['simmons:'+messages[i] if i % 2 == 0 else 'grif:'+messages[i] for i in range(len(messages))])
+            ['SIMMONS:'+messages[i] if i % 2 == 0 else 'GRIF:'+messages[i] for i in range(len(messages))])
         #print(dialogue)
         response = get_dialogue(dialogue) 
 
@@ -75,7 +75,7 @@ def get_dialogue(message_text, temp=0.5, maxlen=251):
         starter_lines = modelLoader.getStarterLines()
         starter = "\n".join(starter_lines).lower()
         message_text = starter + '\n' + message_text
-    seed_string = message_text + "\n grif:"
+    seed_string = message_text + "\nGRIF:"
     startlen = len(seed_string)
 
     with modelLoader.getGraph().as_default():

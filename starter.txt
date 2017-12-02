@@ -1,12 +1,12 @@
- Simmons:You ever wonder why we're here?
- Grif:It's one of life's great mysteries, isn't it. Why are we here? I mean, are we the product of... some cosmic coincidence or, is there really a God... watching everything?       You know, with a plan for us and stuff. I don't know man, but it keeps me up at night.
- Simmons:...
- Grif:...
- Simmons:What? I meant why are we out here, in this canyon?
- Grif:Oh, uh... yeah.
- Simmons:What was all that stuff about God?
- Grif:Uh... hm? Nothing.
- Simmons:You wanna talk about it?
- Grif:No
- Simmons:You sure?
- Grif:Yeah.
+SIMMONS:you ever wonder why we're here?
+GRIF:it's one of life's great mysteries, isn't it. why are we here? i mean, are we the product of... some cosmic coincidence or, is there really a god... watching everything? you know, with a plan for us and stuff. i don't know man, but it keeps me up at night.
+SIMMONS:...
+GRIF:...
+SIMMONS:what? i meant why are we out here, in this canyon?
+GRIF:oh, uh... yeah.
+SIMMONS:what was all that stuff about God?
+GRIF:uh... hm? nothing.
+SIMMONS:you wanna talk about it?
+GRIF:no
+SIMMONS:you sure?
+GRIF:yeah.
