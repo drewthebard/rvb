@@ -69,7 +69,7 @@ def messaging_events(data):
             yield event["sender"]["id"], "i have no idea."
 
 
-def get_dialogue(message_text, temp=0.5, maxlen=251):
+def get_dialogue(message_text, temp=0.8, maxlen=251):
     model = modelLoader.getModel()
     if len(message_text) <= 128:
         starter_lines = modelLoader.getStarterLines()
