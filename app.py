@@ -14,7 +14,7 @@ cache = redis.from_url(os.environ.get("REDIS_URL"))
 # load keras model
 modelLoader = ModelLoader("rvb-model.json", "rvb-weights.hdf5")
 modelLoader.start()
-chars = list('\n !"#$%&\'()*+,-./0123456789:;<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz{}~¡¿àáäèéêíñóöúÿ')
+chars = list('\n !"#$%&\'()*+,-./0123456789:;<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz{}~¡¿àáèéíñóÿ')
 char_indices = dict((c, i) for i, c in enumerate(chars))
 
 
