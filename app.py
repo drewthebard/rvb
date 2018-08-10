@@ -31,14 +31,14 @@ def webhook():
     for sender, message in messaging_events(request.get_json()):
         # get conversation history from cache
         print('Message from {0}: {1}'.format(sender, message))
-        conversation = cache.get(sender) or ''
+        conversation = cache.get(sender).decode() or 'grif:do you ever wonder why we\'re here?'
         message = '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
         if conversation.endswith(message): continue
         
         # send and cache model response
-        response = get_response(conversation)
-        print('Response to {0]: {1}'.format(sender, response))
-        cache.set(sender, (conversation + response)[-bptt:])
+        response = get_response(conversation + message)
+        print('Response to {0}: {1}'.format(sender, response))
+        cache.set(sender, (conversation + message + response)[-bptt:])
         send_message(sender, response)
     return 'OK'
 
@@ -81,5 +81,6 @@ if __name__ == '__main__':
         message = input('Say something: ')
         text += '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
         response = get_response(text)
+        print(response)
         text += response
     # app.run(debug=True)
