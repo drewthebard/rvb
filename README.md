@@ -1,6 +1,6 @@
 # Grifbot
-Chat with Grif from RvB on facebook messenger, using the power of deep learning. Entirely unofficial.
+> Chat with Grif using the power of deep learning (Fan project)
 
 Message Grifbot at https://www.facebook.com/grifchatbot/
 
-Actual model architecture and training code is in fastai-notes repository. Nothing too fancy, just a 2-layer LSTM in keras trained on character embeddings from Red vs. Blue transcripts (courtesy of roostertooths.com). This project simply seeds the model with a message from facebook messenger, appends `GRIF: `, and replies with the dialogue the model generates. Due to the limited training data output may be rather incoherent, but I suppose it's part of the charm.
+Grifbot uses a 2-layer, character-level LSTM trained on Red vs. Blue transcripts (from roostertooths.com) to create similar text. The bot seeds this model with a facebook messenger message and replies with the dialogue the model generates. Due to limited training data and compute, among numerous other issues, output quality is far below the state of the art, though hopefully entertaining nevertheless.
