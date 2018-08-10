@@ -31,7 +31,7 @@ def webhook():
     for sender, message in messaging_events(request.get_json()):
         # get conversation history from cache
         print('Message from {0}: {1}'.format(sender, message))
-        conversation = cache.get(sender) or ''
+        conversation = cache.get(sender) or '\ngrif:do you ever wonder why we\'re here?'
         message = '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
         if conversation.endswith(message): continue
         
@@ -81,5 +81,6 @@ if __name__ == '__main__':
         message = input('Say something: ')
         text += '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
         response = get_response(text)
+        print(response)
         text += response
     # app.run(debug=True)
