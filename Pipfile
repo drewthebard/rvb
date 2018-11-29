@@ -4,14 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-requests = "*"
 redis = "*"
 keras = "*"
 tensorflow = "*"
 flask = "*"
 gunicorn = "*"
+textgenrnn = "*"
 
 [dev-packages]
+lxml = "*"
+requests = "*"
 
 [requires]
 python_version = "3.6"
