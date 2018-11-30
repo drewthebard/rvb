@@ -2,7 +2,7 @@ from lxml import html
 import requests, os
 
 # scrape rooster tooths for RvB scripts
-PATH = 'script.txt'
+PATH = 'scripts.txt'
 
 with open(PATH, 'w') as f:
     for i in [x for x in range(347)]:

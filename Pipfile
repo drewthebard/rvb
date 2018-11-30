@@ -10,10 +10,10 @@ tensorflow = "*"
 flask = "*"
 gunicorn = "*"
 textgenrnn = "*"
+requests = "*"
 
 [dev-packages]
 lxml = "*"
-requests = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,20 +1,20 @@
-import os, sys, json, random, requests, redis, keras, tensorflow
+import json, re, random, requests, redis
 import numpy as np
 from flask import Flask, request
+from textgenrnn import textgenrnn
 
 # load config vars, init app and cache
 app = Flask(__name__)
 app.config.from_object('config')
 cache = redis.from_url(app.config['REDIS_URL'])
 
-# load pytorch model
-with open('rvb-model.json') as f:
-    model = keras.models.model_from_json(f.read())
-model.load_weights('rvb-weights.hdf5')
-graph = tensorflow.get_default_graph()
-chars = list('\n !"#$%&\'()*+,-./0123456789:;<>?_`abcdefghijklmnopqrstuvwxyz{}~¡¿àáèéíñóÿ')
-char_indices = {char: index for index, char in enumerate(chars)}
-bptt = 100
+# load model
+model = textgenrnn(
+    weights_path='weights.hdf5',
+    vocab_path='vocab.json',
+    config_path='config.json',
+)
+speakers = ['sarge', 'simmons', 'tucker', 'caboose', 'donut']
 
 
 @app.route('/', methods=['GET'])
@@ -26,19 +26,44 @@ def verify():
     return 'Improper verification request'
 
 
+def preprocess(message, speaker):
+    punct = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~\\n\\t\'‘’“”’–—'
+    text = speaker + ':' + message.lower() + ('' if message[-1] in '?!.' else '.')
+    text = re.sub('([{}])'.format(punct), r' \1 ', text)
+    return ' '.join(text.split())
+
+
+def generate(conversation):
+    punct = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~\\n\\t\'‘’“”’–—'
+    prefix = ' '.join(conversation) + ' grif : '
+
+    response = model.generate(temperature=1.1, prefix=prefix, return_as_list=True)[0]
+    response = response[len(prefix):] + ' '
+    conversation.append('grif : ' + response[:-1])
+    del conversation[:-1]
+
+    response = re.sub(' ([{}]) '.format(punct), r'\1 ', response)
+    response = re.sub("' (t|s|d|m|re|ve|ll)([\s{}])".format(punct), r"'\1\2", response)
+    return response.strip() if response.strip() else '...'
+
+
 @app.route('/', methods=['POST'])
 def webhook():
     for sender, message in messaging_events(request.get_json()):
         # get conversation history from cache
         print('Message from {0}: {1}'.format(sender, message))
-        conversation = cache.get(sender).decode() or 'grif:do you ever wonder why we\'re here?'
-        message = '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
-        if conversation.endswith(message): continue
+        try:
+            speaker, conversation = json.loads(cache.get(sender))
+        except Exception as e:
+            speaker, conversation = random.choice(speakers), []
+        message = preprocess(message, speaker)
+        if conversation and conversation[-1] == message: continue
+        conversation.append(message)
         
         # send and cache model response
-        response = get_response(conversation + message)
+        response = generate(conversation)
         print('Response to {0}: {1}'.format(sender, response))
-        cache.set(sender, (conversation + message + response)[-bptt:])
+        cache.set(sender, json.dumps([speaker, conversation]))
         send_message(sender, response)
     return 'OK'
 
@@ -61,26 +86,12 @@ def send_message(recipient, message):
     )
 
 
-def get_response(text, temp=0.8, max_len=250):
-    if not text: return 'what?'
-    len_seed = len(text)
-    with graph.as_default():
-        for i in range(max_len):
-            if text[-1] == '\n': return text[len_seed:-1]
-            indexed_text = [char_indices.get(char, 11) for char in text[-bptt:]]
-            preds = model.predict(np.expand_dims(np.array(indexed_text), 0))[0][-1]
-            preds = np.log(preds.clip(min=1e-5)) / temp
-            preds = np.exp(preds) / np.sum(np.exp(preds))
-            text += np.random.choice(chars, p=preds)
-    return text + '...'
-
-
 if __name__ == '__main__':
-    text = ''
+    speaker, conversation = random.choice(speakers), []
     while True:
         message = input('Say something: ')
-        text += '\nsimmons:' + message.lower() + ('' if message[-1] in '?!.' else '.') + '\ngrif:'
-        response = get_response(text)
+        message = preprocess(message, speaker)
+        conversation.append(message)
+        response = generate(conversation)
         print(response)
-        text += response
     # app.run(debug=True)
