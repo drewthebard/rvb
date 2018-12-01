@@ -29,7 +29,10 @@ for line in text.split('\n'):
 
 replacemap = {"\x91": '"', "\x93": '"', "\x92": "'", "\x94": "'",
               '[': '(', ']': ')', '\x85': '\n', '\xa0': ' ', '\x96': ''}
-text = '\n'.join(lines)
+line_groups = []
+for group in zip(lines, lines[1:], lines[2:]):
+    line_groups.append(' '.join(group))
+text = '\n'.join(line_groups)
 for k, v in replacemap.items():
     text = text.replace(k, v)
 

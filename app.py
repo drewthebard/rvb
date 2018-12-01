@@ -10,9 +10,9 @@ cache = redis.from_url(app.config['REDIS_URL'])
 
 # load model
 model = textgenrnn(
-    weights_path='weights.hdf5',
-    vocab_path='vocab.json',
-    config_path='config.json',
+    weights_path='model_weights.hdf5',
+    vocab_path='model_vocab.json',
+    config_path='model_config.json',
 )
 speakers = ['sarge', 'simmons', 'tucker', 'caboose', 'donut']
 
