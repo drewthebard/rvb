@@ -1,10 +1,10 @@
 import json, re, random, requests, redis
 import numpy as np
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from textgenrnn import textgenrnn
 
 # load config vars, init app and cache
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config.from_object('config')
 cache = redis.from_url(app.config['REDIS_URL'])
 
@@ -37,7 +37,7 @@ def generate(conversation):
     punct = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~\\n\\t\'‘’“”’–—'
     prefix = ' '.join(conversation) + ' grif : '
 
-    response = model.generate(temperature=1.1, prefix=prefix, return_as_list=True)[0]
+    response = model.generate(temperature=0.8, prefix=prefix, return_as_list=True)[0]
     response = response[len(prefix):] + ' '
     conversation.append('grif : ' + response[:-1])
     del conversation[:-1]
@@ -55,7 +55,8 @@ def webhook():
         try:
             speaker, conversation = json.loads(cache.get(sender))
         except Exception as e:
-            speaker, conversation = random.choice(speakers), []
+            speaker = random.choice(speakers)
+            conversation = ['grif : hey , what \' s up ?']
         message = preprocess(message, speaker)
         if conversation and conversation[-1] == message: continue
         conversation.append(message)
@@ -66,6 +67,31 @@ def webhook():
         cache.set(sender, json.dumps([speaker, conversation]))
         send_message(sender, response)
     return 'OK'
+
+
+@app.route('/chat', methods=['GET', 'POST'])
+def chat():
+    # return webpage on GET request
+    if request.method == 'GET':
+        return app.send_static_file('index.html')
+
+    sender = request.get_json()['id']
+    message = request.get_json()['text']
+    # get conversation history from cache
+    print('Message from {0}: {1}'.format(sender, message))
+    try:
+        speaker, conversation = json.loads(cache.get(sender))
+    except Exception as e:
+        speaker = random.choice(speakers)
+        conversation = ['grif : hey , what \' s up ?']
+    message = preprocess(message, speaker)
+    conversation.append(message)
+        
+    # send and cache model response
+    response = generate(conversation)
+    print('Response to {0}: {1}'.format(sender, response))
+    cache.set(sender, json.dumps([speaker, conversation]))
+    return jsonify({'text': response})
 
 
 def messaging_events(data):
