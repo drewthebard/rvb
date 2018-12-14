@@ -83,7 +83,7 @@ def chat():
         speaker, conversation = json.loads(cache.get(sender))
     except Exception as e:
         speaker = random.choice(speakers)
-        conversation = ['grif : hey , what \' s up ?']
+        conversation = ['grif : hey , i \' m lazy ?']
     message = preprocess(message, speaker)
     conversation.append(message)
         
